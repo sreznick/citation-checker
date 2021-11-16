@@ -3,8 +3,8 @@ from pathlib import Path
 
 import attr
 
-from crawling.libru.parser import LibRuParser
-from util.log import setup_logging
+from src.crawling.libru import LibRuParser
+from src.util.log import setup_logging
 
 
 def main():

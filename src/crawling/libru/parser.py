@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 import attr
 from bs4 import BeautifulSoup
 
-from crawling.common import NetworkHandler
+from src.crawling.common import NetworkHandler
 
 LOGGER = logging.getLogger(__name__)
 T = TypeVar('T')
