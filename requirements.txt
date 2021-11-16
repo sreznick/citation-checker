@@ -1,0 +1,7 @@
+torch
+transformers
+attrs
+bs4
+beautifulsoup4
+chardet
+requests
