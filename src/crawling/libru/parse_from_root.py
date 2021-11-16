@@ -3,7 +3,7 @@ from pathlib import Path
 
 import attr
 
-from src.crawling.libru import LibRuParser
+from src.crawling.libru.parser import LibRuParser
 from src.util.log import setup_logging
 
 
