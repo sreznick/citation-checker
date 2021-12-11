@@ -53,5 +53,5 @@ if __name__ == '__main__':
             X.append(features)
             
     df = pd.DataFrame(X, columns=percentile_names + element_names + ['length'])
-    df['is_text'] = [1 if url.endswith('.txt') else 0 for url in links]
+    df['is_text'] = [1 if url.endswith('.txt') else 0 for url in links[:100]] + [1 if url[-6] .isdigit() else 0 for url in links[100: ]]
     df.to_csv('texts.csv', index=False)
