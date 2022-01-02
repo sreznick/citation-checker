@@ -3,7 +3,60 @@ import re
 import random
 
 
+def generate_mistake(symbol, language="Russian"):
+    russian_dict = {
+        "а": ["в", "к", "п", "м", "f", "о", "a"],
+        "б": ["ь", "л", "ю", ",", "п"],
+        "в": ["ы", "у", "а", "с", "d", "b"],
+        "г": ["н", "о", "ш", "u", "к"],
+        "д": ["л", "щ", "ж", "б", "ю", "l", "т"],
+        "е": ["к", "п", "н", "t", "и", "ё"],
+        "ё": ["е", "`"],
+        "ж": ["з", "д", "э", "ю", ".", ";"],
+        "з": ["щ", "ж", "х", "p", "с"],
+        "и": ["м", "п", "р", "т", "b", "е"],
+        "й": ["ф", "у", "q", "и"],
+        "к": ["у", "а", "е", "r", "г", "k"],
+        "л": ["о", "ш", "д", "ь", "б", "k"],
+        "м": ["с", "а", "п", "и", "v"],
+        "н": ["е", "р", "г", "y"],
+        "о": ["р", "г", "л", "т", "ь", "j", "а", "o"],
+        "п": ["а", "е", "р", "м", "и", "g", "б"],
+        "р": ["п", "н", "о", "и", "т", "h", "p"],
+        "с": ["ч", "в", "а", "м", "c", "з"],
+        "т": ["и", "р", "о", "ь", "n", "д", "t"],
+        "у": ["ц", "в", "к", "e", "y"],
+        "ф": ["я", "ы", "й", "a"],
+        "х": ["з", "э", "ъ", "["],
+        "ц": ["й", "ы", "у", "w"],
+        "ч": ["я", "ы", "в", "с", "x"],
+        "ш": ["г", "л", "ж", "щ", "i"],
+        "щ": ["ш", "д", "з", "o"],
+        "ъ": ["х", "э", "]", "ь", "ы"],
+        "ы": ["ф", "ц", "в", "я", "ч", "s", "ъ", "ь"],
+        "ь": ["т", "о", "л", "б", "m", "ъ", "ы"],
+        "э": ["ж", "х", ".", "ъ", "'"],
+        "ю": ["б", "д", "ж", "."],
+        "я": ["ф", "ы", "ч", "z"]
+    }
+
+    if language == "Russian":
+        if symbol in russian_dict:
+            return random.choice(russian_dict[symbol.lower()])
+        else:
+            return "&"
+    else:
+        return "&"
+
+
 def generate_spoiled_phrase(text, number_mistakes):
+    """
+    The function generates random mistakes in text.
+
+    For improvement, the dictionaries of the most common misspelled words can be exploited:
+    https://www.dcs.bbk.ac.uk/~ROGER/corpora.html
+    """
+
     words = text.split()
     number_words_phrase = random.randint(min(len(words), 5), min(len(words), 7))
     # Index of the first word in phrase
@@ -34,14 +87,16 @@ def generate_spoiled_phrase(text, number_mistakes):
         if mistake == 2:
             spoiled_symbol_index = random.randint(0, len(spoiled_word) - 2)
             spoiled_word = spoiled_word[:spoiled_symbol_index] + spoiled_word[spoiled_symbol_index + 1] + \
-                           spoiled_word[spoiled_symbol_index] + spoiled_word[spoiled_symbol_index + 2:]
+                spoiled_word[spoiled_symbol_index] + spoiled_word[spoiled_symbol_index + 2:]
 
         else:
             spoiled_symbol_index = random.randint(0, len(spoiled_word) - 1)
             if mistake == 1:
                 spoiled_word = spoiled_word[:spoiled_symbol_index] + "" + spoiled_word[spoiled_symbol_index + 1:]
             else:
-                spoiled_word = spoiled_word[:spoiled_symbol_index] + "&" + spoiled_word[spoiled_symbol_index + 1:]
+                spoiled_word = spoiled_word[:spoiled_symbol_index] + \
+                               generate_mistake(spoiled_word[spoiled_symbol_index]) + \
+                               spoiled_word[spoiled_symbol_index + 1:]
 
         phrase_words[index_spoiled_word] = spoiled_word
 

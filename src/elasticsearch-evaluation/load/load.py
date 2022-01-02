@@ -34,7 +34,7 @@ def doc_parser(path, index_name='texts'):
                 "type": "text",
                 "fields": {
                     "keyword": {
-                        "type":  "keyword"
+                        "type": "keyword"
                     }
                 }
             }
@@ -53,7 +53,7 @@ def doc_parser(path, index_name='texts'):
             file_path = os.path.join(root, file_name)
 
             # Check if this file is not in index already
-            search_query = {
+            query_author_title = {
                 "bool": {
                     "must": [
                         {
@@ -70,29 +70,58 @@ def doc_parser(path, index_name='texts'):
                 }
             }
 
-            response = elasticsearch.search(index=index_name, query=search_query)
+            response_author_title = elasticsearch.search(index=index_name, query=query_author_title)
 
-            if response['hits']['total']['value'] == 0:
+            if response_author_title['hits']['total']['value'] == 0:
                 with open(file_path, 'r') as file:
                     file_text = file.read()
 
-                    paragraphs = []
-
                     # Split on paragraphs and load each of them into elasticsearch
-                    for paragraph in paragraph_parser(file_text):
-                        if paragraph:
-                            document = {
-                                "author": author,
-                                "title": file_name,
-                                "text": paragraph
-                            }
-                            paragraphs.append(document)
+                    split_paragraphs = paragraph_parser(file_text)
 
-                    # Bulk API is used to perform several operations in a single API call
-                    helpers.bulk(elasticsearch, paragraphs, index=index_name)
-                    print(f"{file_name}: was uploaded successfully")
+                    # Another checking if the document is already in the database
+                    fails = 0
+                    trial_number = min(10, len(split_paragraphs))
+
+                    for paragraph_index in range(trial_number):
+                        paragraph = split_paragraphs[paragraph_index]
+
+                        # Search query text match (with possible mistakes)
+                        query_text = {
+                            "match": {
+                                "text": {
+                                    "query": paragraph,
+                                    "fuzziness": "AUTO",
+                                    "operator": "and"
+                                }
+                            }
+                        }
+
+                        response_text = elasticsearch.search(index=index_name, query=query_text)
+
+                        if response_text['hits']['total']['value'] == 0:
+                            fails += 1
+
+                    # If more than 75% of tested paragraphs weren't found then we consider that text is not in database
+                    if fails / trial_number > 0.75:
+                        paragraphs = []
+
+                        for paragraph in split_paragraphs:
+                            if paragraph:
+                                document = {
+                                    "author": author,
+                                    "title": file_name,
+                                    "text": paragraph
+                                }
+                                paragraphs.append(document)
+
+                        # Bulk API is used to perform several operations in a single API call
+                        helpers.bulk(elasticsearch, paragraphs, index=index_name)
+                        print(f"{file_name}: was uploaded successfully")
+                    else:
+                        print(f"{file_name}: was already in database according to text")
             else:
-                print(f"{file_name}: was already in database")
+                print(f"{file_name}: was already in database according to author and title")
 
 
 if __name__ == '__main__':

@@ -27,14 +27,30 @@
 
 `curl "http://localhost:9200/_aliases?pretty=true"`
 
-- Typical query:
+- Typical query for exact match:
 
 ```
 curl -X GET "localhost:9200/_search?pretty" -H 'Content-Type: application/json' -d'
 {
   "query": {
     "match_phrase": {
-      "source": "some phrase"
+      "text": "some phrase"
+    }
+  }
+}'
+```
+
+- Typical query with mistakes:
+
+```
+curl -X GET "localhost:9200/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "match": {
+      "text": {
+        "query": "some phrase",
+        "fuzziness": "AUTO"
+      }
     }
   }
 }'
