@@ -5,13 +5,14 @@ import attr
 
 from src.crawling.libru.parser import LibRuParser
 from src.util.log import setup_logging
+from src.crawling.wikisources.parser import WsParser
 
 
 def main():
-    storage_path = Path.cwd() / 'libru_content_3'
+    storage_path = Path.cwd() / 'ws_content2'
     setup_logging()
-    state_file = 'libru_state.json'
-    parser = LibRuParser(state_file)
+    state_file = 'ws_state.json'
+    parser = WsParser(state_file)
     for content in parser.crawl_from_root(max_count=100, save_to=state_file):
         filepath = storage_path / content.path.lstrip('/')
         filepath = filepath.with_suffix('') / filepath.name
