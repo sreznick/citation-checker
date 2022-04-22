@@ -2,7 +2,7 @@ import itertools
 import logging
 import re
 from typing import Iterator, Tuple, TypeVar, Optional
-from urllib.parse import urlparse, unquote_plus
+from urllib.parse import urlsplit, unquote_plus
 import json
 from os import path
 import attr
@@ -85,7 +85,7 @@ class WsParser(Crawler):
         text = text_elem.text
         return TextContent(
             text=text,
-            path=unquote_plus(urlparse(url).path),
+            path=unquote_plus(urlsplit(url).path),
             author=author,
             name=name
         )

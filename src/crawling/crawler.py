@@ -1,6 +1,7 @@
 import itertools
 import logging
 import re
+from pathlib import Path
 from typing import Iterator, Tuple, TypeVar, Optional
 from urllib.parse import urlparse, unquote_plus
 import json
@@ -9,6 +10,7 @@ import attr
 from bs4 import BeautifulSoup
 
 from src.crawling.common import NetworkHandler
+from src.util.log import setup_logging
 
 
 def islice(iterator, max_step: int = None):
@@ -65,6 +67,7 @@ class Crawler:
 
         self.network_handler = NetworkHandler(wait_time)
 
+        self.state_file = state_file
         if state_file is not None:
             self.read_state(state_file)
 
@@ -92,16 +95,16 @@ class Crawler:
             with open(filename) as f:
                 self.load_state(json.load(f))
 
-    def crawl_from_root(self, max_count: Optional[int] = None, save_to: Optional[str] = None):
-        yield from islice(self.crawl(save_to), max_count)
+    def crawl_from_root(self, max_count: Optional[int] = None, save: bool = True):
+        yield from islice(self.crawl(save), max_count)
 
-    def crawl(self, save_to: Optional[str] = None):
+    def crawl(self, save: bool):
         while self.to_visit:
             url = self.to_visit.pop()
             if (text := self.traverse(url)) is not None:
                 yield text
-            if save_to is not None:
-                self.save_state(save_to)
+            if save and self.state_file is not None:
+                self.save_state(self.state_file)
 
     def traverse(self, url: str) -> Optional[TextContent]:
         logging.info(url)
@@ -146,3 +149,18 @@ class Crawler:
         href = href.rstrip('/')
         href = unquote_plus(href)
         return href
+
+
+def crawl(storage_name: str, parser: Crawler, max_count=100, save=True):
+    text_extensions = {'.txt'}
+    storage_path = Path.cwd() / storage_name
+    setup_logging()
+    for content in parser.crawl_from_root(max_count, save):
+        target_dir = storage_path / content.path.lstrip('/')
+        if target_dir.suffix in text_extensions:
+            target_dir = target_dir.with_suffix('.')
+        target_dir.mkdir(parents=True, exist_ok=True)
+        (target_dir / content.name).write_text(content.text)
+        metainf = attr.asdict(content)
+        del metainf['text']
+        (target_dir / 'metainf.json').write_text(json.dumps(metainf, ensure_ascii=False))

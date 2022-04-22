@@ -12,7 +12,7 @@ def main():
     setup_logging()
     state_file = 'libru_state.json'
     parser = LibRuParser(state_file)
-    for content in parser.crawl_from_root(max_count=100, save_to=state_file):
+    for content in parser.crawl_from_root(max_count=2000, save_to=state_file):
         filepath = storage_path / content.path.lstrip('/')
         filepath = filepath.with_suffix('') / filepath.name
         filepath.parent.mkdir(parents=True, exist_ok=True)

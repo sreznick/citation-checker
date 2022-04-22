@@ -2,7 +2,7 @@ import itertools
 import logging
 import re
 from typing import Iterator, Tuple, TypeVar, Optional
-from urllib.parse import urlparse
+from urllib.parse import urlsplit
 import json
 from os import path
 import attr
@@ -48,7 +48,7 @@ class LibRuParser(Crawler):
         text = self.network_handler.download_text_from_url(f'{url}?format=_Ascii.txt', 'koi8-r')
         return TextContent(
             text=text,
-            path=urlparse(url).path,
+            path=urlsplit(url).path,
             author=author,
             name=name
         )
