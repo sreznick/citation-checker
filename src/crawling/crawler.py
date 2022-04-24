@@ -158,7 +158,7 @@ def crawl(storage_name: str, parser: Crawler, max_count=100, save=True):
     for content in parser.crawl_from_root(max_count, save):
         target_dir = storage_path / content.path.lstrip('/')
         if target_dir.suffix in text_extensions:
-            target_dir = target_dir.with_suffix('.')
+            target_dir = target_dir.with_suffix('')
         target_dir.mkdir(parents=True, exist_ok=True)
         (target_dir / content.name).write_text(content.text)
         metainf = attr.asdict(content)
