@@ -9,7 +9,7 @@ import attr
 from bs4 import BeautifulSoup
 
 from src.crawling.common import NetworkHandler
-from src.crawling.crawler import Crawler, Filter, TextContent
+from src.crawling.crawler import Crawler, Filter, TextContent, crawl
 
 LOGGER = logging.getLogger(__name__)
 
@@ -112,3 +112,7 @@ class WsParser(Crawler):
         href = re.sub(r'https://ru\.wikisource\.org/w/index\.php\?title=([^&]+)&?',
                       r'https://ru.wikisource.org/wiki/\1?', href)
         return href
+
+
+if __name__ == '__main__':
+    crawl('ws_content', WsParser('ws_state.json'), 2000)

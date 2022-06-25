@@ -8,7 +8,7 @@ from os import path
 import attr
 from bs4 import BeautifulSoup
 
-from src.crawling.crawler import Crawler, Filter, TextContent
+from src.crawling.crawler import Crawler, Filter, TextContent, crawl
 
 LOGGER = logging.getLogger(__name__)
 
@@ -30,12 +30,14 @@ class LibRuParser(Crawler):
                     'HITPARAD',
                     '.dir',
                     '_Piece',
-                    'Mirrors'
+                    'Mirrors',
+                    '.zip'
                 ]
             ),
             state_file=state_file,
             wait_time=wait_time,
-            force_encoding='koi8-r'
+            force_encoding='koi8-r',
+            random_crawl=True
         )
 
     def try_parse_text(self, url: str, soup: BeautifulSoup) -> Optional[TextContent]:
@@ -67,3 +69,7 @@ class LibRuParser(Crawler):
                 name = link.text
                 break
         return author, name
+
+
+if __name__ == '__main__':
+    crawl('libru_content', LibRuParser('libru_state.json'), 2000)

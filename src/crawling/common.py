@@ -52,6 +52,8 @@ class NetworkHandler:
             return None, url
         if enc is None:
             enc = chardet.detect(data.content)['encoding']
+        if enc is None:
+            enc = 'utf8'
         return BeautifulSoup(data.content.decode(enc), features='html.parser'), data.url
 
     def get_data(self, url: str):

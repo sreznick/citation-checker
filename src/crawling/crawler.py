@@ -8,9 +8,10 @@ import json
 from os import path
 import attr
 from bs4 import BeautifulSoup
-
+import random
 from src.crawling.common import NetworkHandler
 from src.util.log import setup_logging
+import urllib.parse
 
 
 def islice(iterator, max_step: int = None):
@@ -28,6 +29,7 @@ class TextContent:
     path: str = attr.ib()
     name: str = attr.ib()
     author: str = attr.ib()
+    source: str = attr.ib("")
 
 
 class Filter:
@@ -57,13 +59,14 @@ EMPTY_FILTER = Filter()
 class Crawler:
 
     def __init__(self, start_page, home_page, filt=EMPTY_FILTER, state_file: Optional[str] = None, wait_time=0.5,
-                 force_encoding=None):
+                 force_encoding=None, random_crawl=False):
         self.start_page = start_page
         self.home_page = home_page
         self.force_encoding = force_encoding
         self.filt = filt
         self.visited_urls = set()
         self.to_visit = [self.start_page]
+        self.random_crawl = random_crawl
 
         self.network_handler = NetworkHandler(wait_time)
 
@@ -100,8 +103,12 @@ class Crawler:
 
     def crawl(self, save: bool):
         while self.to_visit:
-            url = self.to_visit.pop()
+            if self.random_crawl:
+                url = self.to_visit.pop(random.randrange(len(self.to_visit)))
+            else:
+                url = self.to_visit.pop()
             if (text := self.traverse(url)) is not None:
+                text.source = url
                 yield text
             if save and self.state_file is not None:
                 self.save_state(self.state_file)
@@ -136,6 +143,8 @@ class Crawler:
         if href.startswith('//'):
             href = f'{self.home_page.partition("//")[0]}{href}'
         if not href.startswith('http'):
+            if href.startswith('..'):
+                return '..'
             if href.startswith('/'):
                 href = f'{self.home_page}{href}'
             else:
@@ -160,7 +169,7 @@ def crawl(storage_name: str, parser: Crawler, max_count=100, save=True):
         if target_dir.suffix in text_extensions:
             target_dir = target_dir.with_suffix('')
         target_dir.mkdir(parents=True, exist_ok=True)
-        (target_dir / content.name).write_text(content.text)
+        (target_dir / (content.name + '.txt')).write_text(content.text)
         metainf = attr.asdict(content)
         del metainf['text']
         (target_dir / 'metainf.json').write_text(json.dumps(metainf, ensure_ascii=False))
